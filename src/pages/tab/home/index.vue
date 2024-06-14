@@ -203,7 +203,9 @@ let currentIndex = -1;
 
         }
         .item-text{
-           font-size:38rpx;
+           font-size:32rpx;
+           font-weight: 400;
+           color:#222;
         }
       }
     }
