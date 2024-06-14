@@ -3,108 +3,157 @@
     <view class="main-wrapper">
       <up-search v-model="keyword" placeholder="请输入关键词" :showAction="false"></up-search>
       <view class="tab">
-        <up-tabs  lineWidth="30"
+        <up-tabs
+          lineWidth="30"
           lineColor="#98F5FF"
           :activeStyle="{
-              color: 'skybule',
-              fontWeight: 'bold',
+            color: 'skybule',
+            fontWeight: 'bold',
           }"
           :inactiveStyle="{
-              color: '#606266',
-              transform: 'scale(1)'
-          }" :list="list1" @click="click"></up-tabs>
+            color: '#606266',
+            transform: 'scale(1)'
+          }"
+          :list="list1"
+          @click="click"
+        ></up-tabs>
       </view>
-      </view>
-      <view class="choose-container">
-         <scroll-view scroll-y="true" :style="{'height':contentHeight + 'px'}" class="left-tab">
-            <view @click="changeSlider(index)" v-for="(item,index) of sliderTab" :key="index" v-bind:class="{'active' :sliderIndex === index,'slider-item':true, }">
-               <text class="item-text">
-                 {{ item.name }}
-               </text>
+    </view>
+    <view class="choose-container">
+      <scroll-view scroll-y="true" :style="{'height': contentHeight + 'px'}" class="left-tab">
+        <view
+          @tap="changeSlider(index)"
+          v-for="(item, index) of sliderTab"
+          :key="index"
+          :class="{ active: sliderIndex === index, 'slider-item': true }"
+          data-index="{{ index }}"
+        >
+          <text class="item-text">{{ item.name }}</text>
+        </view>
+      </scroll-view>
+      <scroll-view
+        ref="scrollView"
+        scroll-y="true"
+        :style="{'height': contentHeight + 'px'}"
+        class="slider-content"
+        :scroll-into-view="targetId"
+        @scroll="handleScroll"
+        :scroll-with-animation="true"
+      >
+        <view v-for="(item, index) in sliderTab" :key="item.value" :id="'target' + (index + 1)">
+          <view class="title-box">
+            <view class="dot"></view>
+            <text class="title">{{ item.name }}</text>
+          </view>
+          <text class="time">2024.6.12</text>
+          <view class="product-item" v-for="(_, productIndex) in 6" :key="productIndex">
+            <text class="product-name">贵州特产盲盒/盒{{ productIndex }}</text>
+            <view class="right-box">
+              <text class="price">¥1999.00</text>
             </view>
-         </scroll-view>
-         <scroll-view scroll-y="true"  :style="{'height':contentHeight + 'px'}" class="slider-content">
-            <view id="target1">
-              <view class="title-box">
-                <view class="dot"></view>
-                <text class="title">常见茅台</text>
-              </view>
-              <text class="time">2024.6.12</text>
-              <view class="product-item" v-for="(item,index) in 40">
-                  <text class="product-name">贵州特产盲盒/盒</text>
-                  <view class="right-box">
-                     <text class="price">¥1999.00</text>
-                  </view>
-              </view>
-            </view>
-            <view id="target2">
-              <view class="title-box">
-                <view class="dot"></view>
-                <text class="title">飞天茅台</text>
-              </view>
-              <text class="time">2024.6.12</text>
-              <view class="product-item" v-for="(item,index) in 40">
-                  <text class="product-name">贵州特产盲盒/盒</text>
-                  <view class="right-box">
-                     <text class="price">¥1999.00</text>
-                  </view>
-              </view>
-            </view>
-         </scroll-view>
-      </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import {ref,reactive} from 'vue'
-import { onReady } from '@dcloudio/uni-app';
-  let getWindowInfo = uni.getWindowInfo()
-  const activeIndex = ref<number>(0)
-  const sliderIndex = ref<number>(0)
-  const keyword = ref<string>('')
-  const list1 = reactive([
-    { name: '美酒' },
-    { name: '戴森' },
- ]);
- const sliderTab = reactive([
-  {name:"茅台一",value:"mt1"},
-  {name:"茅台二",value:"mt2"},
-  {name:"茅台三",value:"mt3"},
-  {name:"茅台四",value:"mt4"},
-  {name:"茅台五",value:"mt5"},
-  {name:"茅台二",value:"mt2"},
-  {name:"茅台三",value:"mt3"},
-  {name:"茅台四",value:"mt4"},
-  {name:"茅台五",value:"mt5"},
-  {name:"茅台二",value:"mt2"},
-  {name:"茅台三",value:"mt3"},
-  {name:"茅台四",value:"mt4"},
-  {name:"茅台五",value:"mt5"},
-  {name:"茅台二",value:"mt2"},
-  {name:"茅台三",value:"mt3"},
-  {name:"茅台四",value:"mt4"},
-  {name:"茅台五",value:"mt5"},
- ])
-// 定义方法
-function click(item:any) {
-  activeIndex.value = item.index
-}
-onReady(()=>{
-  uni.createSelectorQuery().select(".choose-container").boundingClientRect((data:any) => {
-    contentHeight.value = getWindowInfo.windowHeight - data.top -30;
-}).exec();
-})
-const changeSlider = (index:number)=>{
-  sliderIndex.value = index;
-  const str = `target${index + 1}`
-  uni.createSelectorQuery().select(`#${str}`).boundingClientRect((data:any) => {
-    console.log(data.top);
-}).exec();
+import { ref, reactive, onMounted, onUnmounted } from 'vue';
 
-}
-const contentHeight = ref<number>(300)
+const list1 = reactive([
+  { name: '美酒' },
+  { name: '戴森' },
+]);
+
+const sliderTab = reactive([
+  { name: '茅台一', value: 'mt1' },
+  { name: '茅台二', value: 'mt2' },
+  { name: '茅台三', value: 'mt3' },
+  { name: '茅台四', value: 'mt4' },
+  { name: '茅台五', value: 'mt5' },
+]);
+
+const activeIndex = ref<number>(0);
+const sliderIndex = ref<number>(0);
+const keyword = ref<string>('');
+const contentHeight = ref<number>(300);
+const initHeight = ref<number>(0);
+const targetId = ref<string>('#target1');
+let scrollTimer: number | null = null;
+
+onMounted(() => {
+  const getWindowInfo = uni.getWindowInfo();
+  uni.createSelectorQuery()
+    .select('.choose-container')
+    .boundingClientRect((data: any) => {
+      initHeight.value = data.top;
+      contentHeight.value = getWindowInfo.windowHeight - data.top - 30;
+    })
+    .exec();
+});
+
+onUnmounted(() => {
+  if (scrollTimer !== null) {
+    clearTimeout(scrollTimer);
+    scrollTimer = null;
+  }
+});
+
+const click = (item: any) => {
+  activeIndex.value = item.index;
+};
+
+const changeSlider = (index: number) => {
+  sliderIndex.value = index;
+  targetId.value = `target${index + 1}`;
+};
+
+let currentIndex = -1;
+// const handleScroll = () => {
+//   if (scrollTimer !== null) {
+//     clearTimeout(scrollTimer);
+//   }
+//   scrollTimer = setTimeout(() => {
+//     const scrollView = uni.createSelectorQuery().select('.slider-content');
+//     scrollView
+//       .fields({ scrollOffset: true })
+//       .exec((res: UniApp.ScrollOffsetRes[]) => {
+//         const scrollTop = res[0].scrollTop;
+//         // Iterate over sliderTab to find the index of the currently visible target
+
+//         for (let i = 0; i < sliderTab.length; i++) {
+//           const targetElement = uni.createSelectorQuery().select(`#target${i + 1}`);
+//           targetElement
+//             .boundingClientRect((rect: UniApp.BoundingClientRectCallbackResult) => {
+//               // if(i==0){
+//               //   console.log(rect.top,8888888,initHeight.value + 30,rect.bottom)
+//               // }
+//               const height = initHeight.value + 31
+//               const dis = rect.top - height
+//               console.log(dis)
+//               if (dis <= 3 ) {
+//                 currentIndex = i ;
+//                 return
+//               }
+//             })
+//             .exec();
+//         }
+//         console.log("active:",currentIndex)
+//         if (currentIndex !== -1) {
+//           sliderIndex.value = currentIndex;
+//         }
+//       });
+//     scrollTimer = null;
+//   }, 20);
+// };
 
 </script>
+
+<style scoped>
+/* Add your styles here */
+</style>
+
 <style lang="scss" scoped>
 .container{
   display: flex;
@@ -164,6 +213,7 @@ const contentHeight = ref<number>(300)
         display: flex;
         margin-bottom:28rpx;
         align-items: center;
+        margin-top:30rpx;
         .dot{
           width: 16rpx;
           height: 16rpx;
@@ -173,7 +223,7 @@ const contentHeight = ref<number>(300)
         }
         .title{
            font-size: 38rpx;
-           margin-top:30rpx;
+
          }
          &:first-of-type{
           .title-box{
